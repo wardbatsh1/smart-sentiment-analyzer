@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pkl
+*.joblib
+.env
+
+# DVC & MLflow
+.dvc/
+*.dvc
+mlruns/
+
+# Frontend build files
+node_modules/
+frontend/build/
+
+# System files
+.DS_Store
+Thumbs.db
