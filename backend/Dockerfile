@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy all backend code into container
 COPY . /app/
+COPY ./models /app/models
 
 # Expose port for FastAPI
 EXPOSE 8000
