@@ -1,0 +1,88 @@
+/* Global Reset */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* App Container */
+.App {
+  background-color: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+}
+
+/* Headings */
+h1 {
+  color: #333;
+  margin-bottom: 30px;
+}
+
+/* Text Area */
+textarea {
+  width: 100%;
+  padding: 15px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 120px;
+  margin-bottom: 20px;
+  transition: border 0.3s;
+}
+
+textarea:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+/* Button */
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #556cd6;
+}
+
+/* Sentiment Result */
+h3 {
+  margin-top: 30px;
+  font-size: 20px;
+}
+
+h3 span {
+  padding: 4px 10px;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+}
+
+h3 span.Positive {
+  background-color: #28a745;
+}
+
+h3 span.Negative {
+  background-color: #dc3545;
+}
+
+h3 span.Neutral {
+  background-color: #ffc107;
+  color: #333;
+}
