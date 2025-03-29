@@ -1,0 +1,9 @@
+[core]
+    remote = origin
+['remote "gdrive"']
+    url = gdrive://1Uf4TGGvXMGQ-jOQxwf8QQNPj_roZP2VE
+['remote "origin"']
+    url = https://dagshub.com/ward.batsh2/smart-sentiment-analyzer.dvc
+    auth = basic
+    user = ward.batsh2
+    password = c5e473570ec9b6dc44959072ac4d14e38b8f781d
