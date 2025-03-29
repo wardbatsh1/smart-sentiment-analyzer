@@ -6,8 +6,8 @@ __pycache__/
 .env
 
 # DVC & MLflow
-.dvc/
-*.dvc
+# Ignore DVC data but NOT DVC config folder
+!.dvc/
 mlruns/
 
 # Frontend build files
