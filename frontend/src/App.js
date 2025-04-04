@@ -12,7 +12,7 @@ function App() {
     setSentiment("");
 
     try {
-      const response = await fetch("https://unfair-goldia-wardbatsh-a4e43e0c.koyeb.app/predict", {
+      const response = await fetch("https://kind-nikoletta-wardbatsh22-82d02e36.koyeb.app/predict", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
