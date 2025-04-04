@@ -3,11 +3,17 @@ from pydantic import BaseModel
 from joblib import load
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import mlflow
+import mlflow.sklearn
 
 
 # === Load the trained model ===
-model = load("models/LogisticRegression_model.joblib")
-
+model = mlflow.sklearn.load_model("models:/LogisticRegression_model/1")
+os.environ["MLFLOW_TRACKING_URI"] = "https://dagshub.com/ward.batsh2/smart-sentiment-analyzer.mlflow"
+os.environ["MLFLOW_TRACKING_USERNAME"] = "ward.batsh2"
+os.environ["MLFLOW_TRACKING_PASSWORD"] = "2ff1f1a5e81f1d485b2a5ed5f303908c613b1d70"
+mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 # === FastAPI app ===
 app = FastAPI(
     title="Smart Sentiment Analyzer",
