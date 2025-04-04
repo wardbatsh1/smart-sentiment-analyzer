@@ -1,5 +1,5 @@
 [core]
-    remote = origin
+    remote = s3remote
 ['remote "gdrive"']
     url = gdrive://1Uf4TGGvXMGQ-jOQxwf8QQNPj_roZP2VE
 ['remote "origin"']
@@ -7,3 +7,7 @@
     auth = basic
     user = ward.batsh2
     password = c5e473570ec9b6dc44959072ac4d14e38b8f781d
+['remote "s3remote"']
+    url = s3://bucket1212131
+    endpointurl = https://s3.amazonaws.com
+    region = us-east-1
