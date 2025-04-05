@@ -6,25 +6,29 @@ import mlflow
 import mlflow.sklearn
 import os
 import logging
+import sys
 from joblib import load
+
+# === Set up logging (so Koyeb captures it) ===
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # ✅ Send logs to stdout for Koyeb
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # === Load the saved TfidfVectorizer ===
 vectorizer = load("models/tfidf_vectorizer.joblib")
 
-# === Set up logging ===
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
-# === Configure MLflow (before loading the model) ===
+# === Configure MLflow ===
 os.environ["MLFLOW_TRACKING_URI"] = "https://dagshub.com/ward.batsh2/smart-sentiment-analyzer.mlflow"
 os.environ["MLFLOW_TRACKING_USERNAME"] = "ward.batsh2"
 os.environ["MLFLOW_TRACKING_PASSWORD"] = "2ff1f1a5e81f1d485b2a5ed5f303908c613b1d70"
 mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 
-# === Load the trained model from DagsHub MLflow Model Registry ===
+# === Load the model from MLflow registry ===
 logger.info("Loading model from MLflow model registry...")
 try:
     model = mlflow.sklearn.load_model("models:/LogisticRegression_Registered/1")
@@ -33,20 +37,20 @@ except Exception as e:
     logger.error(f"❌ Error loading model: {e}")
     raise
 
-# === Initialize FastAPI app ===
+# === FastAPI app ===
 app = FastAPI(
     title="Smart Sentiment Analyzer",
     description="API to predict sentiment (Positive, Neutral, Negative)",
     version="1.0.0"
 )
 
-# === Enable Prometheus metrics monitoring ===
+# === Enable Prometheus monitoring ===
 Instrumentator().instrument(app).expose(app)
 
-# === Enable CORS for React frontend ===
+# === Enable CORS ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (for development)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,7 +66,7 @@ class SentimentResponse(BaseModel):
 # === Root Endpoint ===
 @app.get("/")
 def root():
-    logger.info("Root endpoint accessed.")
+    logger.info("📡 Root endpoint accessed.")
     return {"message": "Welcome to the Sentiment Analyzer API!"}
 
 # === Prediction Endpoint ===
@@ -70,7 +74,6 @@ def root():
 def predict_sentiment(data: ReviewRequest):
     logger.info(f"📩 Received input: {data.text}")
     try:
-        # ✅ Vectorize input before prediction
         transformed_text = vectorizer.transform([data.text])
         prediction = model.predict(transformed_text)[0]
         sentiment = (
@@ -84,7 +87,7 @@ def predict_sentiment(data: ReviewRequest):
         logger.error(f"❌ Prediction error: {e}")
         return {"sentiment": "Prediction error"}
 
-# === Run locally ===
+# === For local development only ===
 if __name__ == "__main__":
     logger.info("🚀 Starting FastAPI app locally...")
     import uvicorn
