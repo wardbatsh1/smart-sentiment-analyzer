@@ -1,53 +1,91 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
-from joblib import load
-import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-import os
+from prometheus_fastapi_instrumentator import Instrumentator
 import mlflow
 import mlflow.sklearn
+import os
+import logging
+from joblib import load
 
+# === Load the saved TfidfVectorizer ===
+vectorizer = load("models/tfidf_vectorizer.joblib")
 
-# === Load the trained model ===
-model = mlflow.sklearn.load_model("models:/LogisticRegression_model/1")
+# === Set up logging ===
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# === Configure MLflow (before loading the model) ===
 os.environ["MLFLOW_TRACKING_URI"] = "https://dagshub.com/ward.batsh2/smart-sentiment-analyzer.mlflow"
 os.environ["MLFLOW_TRACKING_USERNAME"] = "ward.batsh2"
 os.environ["MLFLOW_TRACKING_PASSWORD"] = "2ff1f1a5e81f1d485b2a5ed5f303908c613b1d70"
 mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
-# === FastAPI app ===
+
+# === Load the trained model from DagsHub MLflow Model Registry ===
+logger.info("Loading model from MLflow model registry...")
+try:
+    model = mlflow.sklearn.load_model("models:/LogisticRegression_Registered/1")
+    logger.info("✅ Model loaded successfully.")
+except Exception as e:
+    logger.error(f"❌ Error loading model: {e}")
+    raise
+
+# === Initialize FastAPI app ===
 app = FastAPI(
     title="Smart Sentiment Analyzer",
-    description="API to predict sentiment (positive, neutral, negative)",
+    description="API to predict sentiment (Positive, Neutral, Negative)",
     version="1.0.0"
 )
-# Allow CORS from React frontend (localhost:3000)
+
+# === Enable Prometheus metrics monitoring ===
+Instrumentator().instrument(app).expose(app)
+
+# === Enable CORS for React frontend ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or ["*"] to allow all origins
+    allow_origins=["*"],  # Allow all origins (for development)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# === Request format ===
+# === Request/Response Models ===
 class ReviewRequest(BaseModel):
     text: str
 
-# === Response format ===
 class SentimentResponse(BaseModel):
     sentiment: str
 
-# === Prediction endpoint ===
-@app.post("/predict", response_model=SentimentResponse)
-def predict_sentiment(data: ReviewRequest):
-    prediction = model.predict([data.text])[0]
-    return {"sentiment": "Negative" if prediction == 0 else "Neutral" if prediction == 1 else "Positive"}
-
-# === Root ===
+# === Root Endpoint ===
 @app.get("/")
 def root():
+    logger.info("Root endpoint accessed.")
     return {"message": "Welcome to the Sentiment Analyzer API!"}
 
-# === For local dev only ===
+# === Prediction Endpoint ===
+@app.post("/predict", response_model=SentimentResponse)
+def predict_sentiment(data: ReviewRequest):
+    logger.info(f"📩 Received input: {data.text}")
+    try:
+        # ✅ Vectorize input before prediction
+        transformed_text = vectorizer.transform([data.text])
+        prediction = model.predict(transformed_text)[0]
+        sentiment = (
+            "Negative" if prediction == 0 else
+            "Neutral" if prediction == 1 else
+            "Positive"
+        )
+        logger.info(f"✅ Predicted sentiment: {sentiment}")
+        return {"sentiment": sentiment}
+    except Exception as e:
+        logger.error(f"❌ Prediction error: {e}")
+        return {"sentiment": "Prediction error"}
+
+# === Run locally ===
 if __name__ == "__main__":
+    logger.info("🚀 Starting FastAPI app locally...")
+    import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
